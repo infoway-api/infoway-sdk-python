@@ -40,5 +40,5 @@ class MarketDataMixin:
         """
         return self._http.post(
             f"/{self._prefix}/v2/batch_kline",
-            json={"codes": codes, "klineType": int(kline_type), "klineCount": count},
+            json={"codes": codes, "klineType": int(kline_type), "klineNum": count},
         )
