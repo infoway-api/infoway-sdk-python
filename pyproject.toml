@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "infoway-sdk"
+dynamic = ["version"]
+description = "Official Python SDK for Infoway real-time financial data API"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+authors = [{ name = "Infoway", email = "hi@infoway.io" }]
+keywords = ["finance", "stock", "crypto", "forex", "market-data", "websocket", "real-time"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+dependencies = [
+    "httpx>=0.27",
+    "websockets>=12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+]
+
+[project.urls]
+Homepage = "https://infoway.io"
+Documentation = "https://docs.infoway.io"
+Repository = "https://github.com/infoway-io/infoway-sdk-python"
+
+[tool.hatch.version]
+path = "src/infoway/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/infoway"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
