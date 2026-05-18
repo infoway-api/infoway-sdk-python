@@ -27,13 +27,40 @@ class Business(str):
 
 
 class WsCode(IntEnum):
+    """WebSocket message codes.
+
+    Outbound (client → server):
+        SUB_TRADE / SUB_DEPTH / SUB_KLINE / HEARTBEAT
+        UNSUB_TRADE / UNSUB_DEPTH / UNSUB_KLINE
+
+    Inbound (server → client):
+        SUB_*_ACK — one-shot ``{"msg":"ok"}`` after a successful subscribe
+        PUSH_TRADE (10002) / PUSH_DEPTH (10005) / PUSH_KLINE (10008) — real-time data pushes
+        UNSUB_ACK (11010) — unsubscribe confirmation
+    """
+
+    # Outbound — subscribe
     SUB_TRADE = 10000
-    PUSH_TRADE = 10001
-    UNSUB_TRADE = 10002
     SUB_DEPTH = 10003
-    PUSH_DEPTH = 10004
-    UNSUB_DEPTH = 10005
     SUB_KLINE = 10006
-    PUSH_KLINE = 10007
-    UNSUB_KLINE = 10008
+
+    # Outbound — heartbeat
     HEARTBEAT = 10010
+
+    # Outbound — unsubscribe
+    UNSUB_TRADE = 11000
+    UNSUB_DEPTH = 11001
+    UNSUB_KLINE = 11002
+
+    # Inbound — subscription acknowledgements
+    SUB_TRADE_ACK = 10001
+    SUB_DEPTH_ACK = 10004
+    SUB_KLINE_ACK = 10007
+
+    # Inbound — real-time data pushes
+    PUSH_TRADE = 10002
+    PUSH_DEPTH = 10005
+    PUSH_KLINE = 10008
+
+    # Inbound — unsubscribe ack
+    UNSUB_ACK = 11010
