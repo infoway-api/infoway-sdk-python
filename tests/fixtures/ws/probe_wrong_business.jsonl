@@ -1,0 +1,6 @@
+{"_recv_ts_ms": 1786775768766, "_t_rel_s": 0.17, "_dir": "meta", "_raw": "", "_note": "WS OPEN business=crypto apikey=<valid>"}
+{"_recv_ts_ms": 1786775768767, "_t_rel_s": 0.17, "_dir": "recv", "_raw": "{\"code\":200,\"msg\":\"ws connect success\"}"}
+{"_recv_ts_ms": 1786775768767, "_t_rel_s": 0.17, "_dir": "send", "_raw": "{\"code\": 10000, \"trace\": \"b893199906b645e38b361636a2292e5d\", \"data\": {\"codes\": \"AAPL.US\"}}", "_note": "subscribe AAPL.US on business=crypto"}
+{"_recv_ts_ms": 1786775768784, "_t_rel_s": 0.188, "_dir": "recv", "_raw": "{\"code\":10001,\"trace\":\"b893199906b645e38b361636a2292e5d\",\"msg\":\"ok\"}"}
+{"_recv_ts_ms": 1786775782701, "_t_rel_s": 14.105, "_dir": "meta", "_raw": "", "_note": "probe window 14s elapsed - closing"}
+{"_recv_ts_ms": 1786775782720, "_t_rel_s": 14.124, "_dir": "meta", "_raw": "", "_note": "WS CLOSED close_status=None close_msg=None"}

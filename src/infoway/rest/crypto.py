@@ -11,5 +11,6 @@ if TYPE_CHECKING:
 class CryptoClient(MarketDataMixin):
     _prefix = "crypto"
 
-    def __init__(self, http: HttpClient):
+    def __init__(self, http: HttpClient, parse: bool = False):
         self._http = http
+        self._parse = parse

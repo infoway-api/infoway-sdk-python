@@ -1,0 +1,8 @@
+{"_recv_ts_ms": 1786775801108, "_t_rel_s": 0.157, "_dir": "meta", "_raw": "", "_note": "WS OPEN business=crypto apikey=<valid>"}
+{"_recv_ts_ms": 1786775801108, "_t_rel_s": 0.158, "_dir": "recv", "_raw": "{\"code\":200,\"msg\":\"ws connect success\"}"}
+{"_recv_ts_ms": 1786775801108, "_t_rel_s": 0.158, "_dir": "send", "_raw": "{\"code\": 10000, \"trace\": \"408e395555214a2e91b596e351b83c97\"}", "_note": "subscribe trade with NO data field"}
+{"_recv_ts_ms": 1786775801123, "_t_rel_s": 0.173, "_dir": "recv", "_raw": "{\"traceId\":\"408e395555214a2e91b596e351b83c97\",\"code\":507,\"msg\":\"Param lost：data\"}"}
+{"_recv_ts_ms": 1786775806109, "_t_rel_s": 5.158, "_dir": "send", "_raw": "{\"code\": 99999, \"trace\": \"5bd586b3b6884212ba76d78d5fb7ebf2\", \"data\": {\"codes\": \"BTCUSDT\"}}", "_note": "unknown protocol code 99999"}
+{"_recv_ts_ms": 1786775806123, "_t_rel_s": 5.173, "_dir": "recv", "_raw": "{\"traceId\":\"5bd586b3b6884212ba76d78d5fb7ebf2\",\"code\":506,\"msg\":\"Param error：The code is out of range\"}"}
+{"_recv_ts_ms": 1786775815056, "_t_rel_s": 14.105, "_dir": "meta", "_raw": "", "_note": "probe window 14s elapsed - closing"}
+{"_recv_ts_ms": 1786775815070, "_t_rel_s": 14.12, "_dir": "meta", "_raw": "", "_note": "WS CLOSED close_status=None close_msg=None"}

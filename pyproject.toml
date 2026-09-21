@@ -34,7 +34,7 @@ dev = [
 [project.urls]
 Homepage = "https://infoway.io"
 Documentation = "https://docs.infoway.io"
-Repository = "https://github.com/infoway-io/infoway-sdk-python"
+Repository = "https://github.com/infoway-api/infoway-sdk-python"
 
 [tool.hatch.version]
 path = "src/infoway/_version.py"
@@ -44,3 +44,10 @@ packages = ["src/infoway"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+testpaths = ["tests"]
+# Live contract tests hit the real API and are excluded from the default run.
+# Run them with:  INFOWAY_API_KEY=... pytest -m live
+addopts = "-m 'not live'"
+markers = [
+    "live: contract test against the real API (needs INFOWAY_API_KEY + network)",
+]

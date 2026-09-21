@@ -1,0 +1,8 @@
+{"_recv_ts_ms": 1786775284815, "_t_rel_s": 0.165, "_dir": "meta", "_raw": "", "_note": "WS OPEN url=wss://data.infoway.io/ws?business=stock&apikey=<redacted>"}
+{"_recv_ts_ms": 1786775284816, "_t_rel_s": 0.165, "_dir": "send", "_raw": "{\"code\": 10000, \"trace\": \"336b52a51cfd4fe5ad4f6c7733d77beb\", \"data\": {\"codes\": \"AAPL.US,TSLA.US\", \"includeTy\": true}}", "_note": "subscribe"}
+{"_recv_ts_ms": 1786775284816, "_t_rel_s": 0.165, "_dir": "recv", "_raw": "You have permission to subscribe to all market data", "_note": "non-json-frame"}
+{"_recv_ts_ms": 1786775284816, "_t_rel_s": 0.165, "_dir": "recv", "_raw": "{\"code\":200,\"msg\":\"ws connect success\"}"}
+{"_recv_ts_ms": 1786775284833, "_t_rel_s": 0.182, "_dir": "recv", "_raw": "{\"code\":10001,\"trace\":\"336b52a51cfd4fe5ad4f6c7733d77beb\",\"msg\":\"ok\"}", "_note": "subscribe-ack"}
+{"_recv_ts_ms": 1786775292816, "_t_rel_s": 8.165, "_dir": "send", "_raw": "{\"code\": 10010, \"trace\": \"5eedbc23d32d43d686394d60a12c84e8\"}", "_note": "heartbeat"}
+{"_recv_ts_ms": 1786775329665, "_t_rel_s": 45.014, "_dir": "meta", "_raw": "", "_note": "TIMEOUT after 45s - closing"}
+{"_recv_ts_ms": 1786775329680, "_t_rel_s": 45.029, "_dir": "meta", "_raw": "", "_note": "WS CLOSED close_status=None close_msg=None"}

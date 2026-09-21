@@ -1,0 +1,16 @@
+{"_recv_ts_ms": 1786775227230, "_t_rel_s": 0.206, "_dir": "meta", "_raw": "", "_note": "WS OPEN url=wss://data.infoway.io/ws?business=crypto&apikey=<redacted>"}
+{"_recv_ts_ms": 1786775227230, "_t_rel_s": 0.206, "_dir": "send", "_raw": "{\"code\": 10000, \"trace\": \"2e052368b9b74190a08a4ebaa19ad0e8\", \"data\": {\"codes\": \"BTCUSDT\", \"includeTy\": true}}", "_note": "subscribe"}
+{"_recv_ts_ms": 1786775227230, "_t_rel_s": 0.207, "_dir": "recv", "_raw": "{\"code\":200,\"msg\":\"ws connect success\"}"}
+{"_recv_ts_ms": 1786775227247, "_t_rel_s": 0.223, "_dir": "recv", "_raw": "{\"code\":10001,\"trace\":\"2e052368b9b74190a08a4ebaa19ad0e8\",\"msg\":\"ok\"}", "_note": "subscribe-ack"}
+{"_recv_ts_ms": 1786775227534, "_t_rel_s": 0.51, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775227483,\"td\":1,\"v\":\"0.07933\",\"vw\":\"5000.88387\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775228183, "_t_rel_s": 1.16, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775228117,\"td\":1,\"v\":\"0.07934\",\"vw\":\"5001.51426\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775229033, "_t_rel_s": 2.01, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775228976,\"td\":1,\"v\":\"0.07933\",\"vw\":\"5000.88387\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775229434, "_t_rel_s": 2.41, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775229349,\"td\":1,\"v\":\"0.00512\",\"vw\":\"322.75968\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775229735, "_t_rel_s": 2.711, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775229649,\"td\":1,\"v\":\"0.01309\",\"vw\":\"825.18051\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775229735, "_t_rel_s": 2.711, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775229649,\"td\":1,\"v\":\"0.03488\",\"vw\":\"2198.80032\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775229735, "_t_rel_s": 2.711, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775229650,\"td\":1,\"v\":\"0.03137\",\"vw\":\"1977.53343\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775230384, "_t_rel_s": 3.36, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775230318,\"td\":1,\"v\":\"0.05191\",\"vw\":\"3272.35449\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775230384, "_t_rel_s": 3.36, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775230318,\"td\":1,\"v\":\"0.00523\",\"vw\":\"329.69397\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775230384, "_t_rel_s": 3.36, "_dir": "recv", "_raw": "{\"code\":10002,\"data\":{\"p\":\"63039\",\"s\":\"BTCUSDT\",\"t\":1786775230318,\"td\":1,\"v\":\"0.002\",\"vw\":\"126.078\"}}", "_note": "data-push"}
+{"_recv_ts_ms": 1786775230384, "_t_rel_s": 3.36, "_dir": "send", "_raw": "{\"code\": 11000, \"trace\": \"52e760c09e0847bc9829f0201809cdc9\", \"data\": {\"codes\": \"BTCUSDT\"}}", "_note": "unsubscribe"}
+{"_recv_ts_ms": 1786775232400, "_t_rel_s": 5.377, "_dir": "meta", "_raw": "", "_note": "WS CLOSED close_status=None close_msg=None"}
