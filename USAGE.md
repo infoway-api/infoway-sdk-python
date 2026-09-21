@@ -164,7 +164,7 @@ K-lines are wrapped per symbol; bars sit in `respList`; `t` is a **seconds** str
 
 At most **500** bars per symbol. Multi-symbol kline requests are capped at 2 bars each.
 
-SDK always uses `POST /{market}/v2/batch_kline` (Japan / India / Korea / Taiwan have no GET kline).
+SDK always uses `POST /{market}/v2/batch_kline`.
 
 ---
 

@@ -166,7 +166,7 @@ K 线外层是按品种包一层，K 线列表在 `respList`；`t` 是**秒**级
 
 K 线单品种最多 **500** 根；多品种请求会被服务端截成每个品种 2 根。
 
-SDK 一律走 `POST /{market}/v2/batch_kline`（日本 / 印度 / 韩国 / 台湾没有 GET K 线）。
+SDK 一律走 `POST /{market}/v2/batch_kline`。
 
 ---
 
