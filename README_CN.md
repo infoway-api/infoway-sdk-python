@@ -10,7 +10,7 @@ Infoway 官方 Python SDK。覆盖 REST 行情、基础信息、市场概览、�
 
 | 项目 | 说明 |
 | --- | --- |
-| 包 | [`infoway-sdk==0.3.0`](https://pypi.org/project/infoway-sdk/) |
+| 包 | [`infoway-sdk==0.4.0`](https://pypi.org/project/infoway-sdk/) |
 | 运行环境 | Python 3.9+ |
 | REST | `https://data.infoway.io` |
 | 行情 WebSocket | `wss://data.infoway.io/ws` |
@@ -36,7 +36,7 @@ Infoway 官方 Python SDK。覆盖 REST 行情、基础信息、市场概览、�
 ## 安装
 
 ```bash
-pip install infoway-sdk==0.3.0
+pip install infoway-sdk==0.4.0
 ```
 
 ## 快速开始

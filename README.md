@@ -10,7 +10,7 @@ Official Infoway Python SDK for REST market data, fundamentals, and WebSocket st
 
 | Item | Description |
 | --- | --- |
-| Package | [`infoway-sdk==0.3.0`](https://pypi.org/project/infoway-sdk/) |
+| Package | [`infoway-sdk==0.4.0`](https://pypi.org/project/infoway-sdk/) |
 | Runtime | Python 3.9+ |
 | REST | `https://data.infoway.io` |
 | Quotes WebSocket | `wss://data.infoway.io/ws` |
@@ -36,7 +36,7 @@ If `api_key` is omitted, the SDK reads `INFOWAY_API_KEY`. `InfowayClient` is a c
 ## Install
 
 ```bash
-pip install infoway-sdk==0.3.0
+pip install infoway-sdk==0.4.0
 ```
 
 ## Quick start

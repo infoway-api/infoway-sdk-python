@@ -54,4 +54,4 @@ def test_parse_propagates_to_market_sub_clients():
 def test_version_is_030():
     import infoway
 
-    assert infoway.__version__ == "0.3.0"
+    assert infoway.__version__ == "0.4.0"
