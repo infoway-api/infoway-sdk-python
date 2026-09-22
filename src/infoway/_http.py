@@ -20,6 +20,13 @@ from infoway.exceptions import (
 
 logger = logging.getLogger("infoway")
 
+
+def resolve_api_key(api_key: str | None) -> str:
+    """``None`` reads ``INFOWAY_API_KEY``. A blank string is an explicit empty key."""
+    if api_key is not None:
+        return api_key.strip()
+    return os.getenv("INFOWAY_API_KEY", "").strip()
+
 _DEFAULT_BASE_URL = "https://data.infoway.io"
 _DEFAULT_TIMEOUT = 15.0
 _DEFAULT_RETRIES = 3
@@ -35,10 +42,11 @@ class HttpClient:
         timeout: float = _DEFAULT_TIMEOUT,
         max_retries: int = _DEFAULT_RETRIES,
     ):
-        self._api_key = api_key or os.getenv("INFOWAY_API_KEY", "")
+        self._api_key = resolve_api_key(api_key)
         self._base_url = base_url.rstrip("/")
         self._timeout = timeout
         self._max_retries = max_retries
+        self._closed = False
         self._client = httpx.Client(
             base_url=self._base_url,
             headers={"apikey": self._api_key},
@@ -52,6 +60,8 @@ class HttpClient:
         return self._request("POST", path, json=json)
 
     def _request(self, method: str, path: str, **kwargs: Any) -> Any:
+        if self._closed:
+            raise InfowayIoError("InfowayClient is closed")
         last_exc: Exception | None = None
         for attempt in range(self._max_retries):
             try:
@@ -132,6 +142,7 @@ class HttpClient:
 
     @staticmethod
     def _rest_failure(ret: int, msg: str, trace_id: str | None) -> InfowayAPIError:
+        ret = RestErrorCode.classify(ret, msg)
         if ret == 401:
             return InfowayAuthError(msg, trace_id=trace_id)
         if ret in (429, RestErrorCode.REQUEST_EXCEED_LIMIT, RestErrorCode.REQUEST_FOR_DAY_LIMIT):
@@ -139,6 +150,7 @@ class HttpClient:
         return InfowayAPIError.of_rest(ret, msg, trace_id)
 
     def close(self):
+        self._closed = True
         self._client.close()
 
     def __enter__(self):

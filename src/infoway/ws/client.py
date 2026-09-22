@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import logging
-import os
 import uuid
 from contextlib import suppress
 from typing import Any, Awaitable, Callable, Iterable
@@ -89,7 +89,8 @@ class InfowayWebSocket:
         parse: bool = False,
         print_frames: bool = False,
     ):
-        key = api_key or os.getenv("INFOWAY_API_KEY", "")
+        from infoway._http import resolve_api_key
+        key = resolve_api_key(api_key)
         if not key:
             raise ValueError("apiKey is required (set INFOWAY_API_KEY or pass api_key)")
         channel = wire(business)
@@ -166,7 +167,9 @@ class InfowayWebSocket:
         if cb is None:
             return
         try:
-            await cb(*args)
+            result = cb(*args)
+            if inspect.isawaitable(result):
+                await result
         except Exception:
             logger.exception("User %s raised — connection preserved", name)
 
@@ -321,6 +324,11 @@ class InfowayWebSocket:
                 err = InfowayAPIError.of_ws(code, text, trace)
             logger.warning("Server rejected a frame: %s", err)
             await self._safe_call(self.on_error, err, name="on_error")
+            if WsErrorCode.is_terminal(code):
+                self._running = False
+                ws = self._ws
+                if ws is not None:
+                    await ws.close()
         else:
             logger.debug("Unhandled code %s: %s", code, msg)
 

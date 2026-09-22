@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Any, TYPE_CHECKING
 
-from infoway._types import PeriodType, SymbolType, query, wire
+from infoway._types import SYMBOL_TYPES, PeriodType, RestErrorCode, SymbolType, query, wire
+from infoway.exceptions import InfowayAPIError
 
 if TYPE_CHECKING:
     from infoway._http import HttpClient
@@ -90,6 +91,9 @@ class FinancialClient:
         type: SymbolType | str,
         period_type: PeriodType | str | None = None,
     ) -> Any:
+        value = wire(type)
+        if value not in SYMBOL_TYPES:
+            raise InfowayAPIError.of_rest(int(RestErrorCode.PARAM_ERROR), "Param error：type")
         return self._http.get(
             f"/common/basic/financial/{name}",
             params=query(symbol=symbol, type=wire(type), period_type=wire(period_type)),

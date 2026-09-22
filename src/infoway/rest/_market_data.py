@@ -5,6 +5,41 @@ from __future__ import annotations
 from typing import Any, TYPE_CHECKING
 
 from infoway._normalize import normalize_depth, normalize_kline, normalize_trade
+from infoway._types import RestErrorCode
+from infoway.exceptions import InfowayAPIError
+
+MAX_SYMBOLS = 100
+MAX_KLINE_BARS = 500
+MAX_KLINE_BARS_WHEN_BATCHED = 2
+
+
+def _symbol_count(codes: str | None) -> int:
+    if not codes or not str(codes).strip():
+        return 0
+    return len({part.strip() for part in str(codes).split(",") if part.strip()})
+
+
+def _check_symbols(codes: str | None) -> None:
+    if _symbol_count(codes) > MAX_SYMBOLS:
+        raise InfowayAPIError.of_rest(
+            int(RestErrorCode.PRODUCTS_EXCEEDS_LIMIT),
+            f"Products quantity exceeds the limit：{MAX_SYMBOLS}",
+        )
+
+
+def _check_kline(codes: str | None, count: int) -> None:
+    _check_symbols(codes)
+    if _symbol_count(codes) > 1 and count > MAX_KLINE_BARS_WHEN_BATCHED:
+        raise InfowayAPIError.of_rest(
+            int(RestErrorCode.PARAM_ERROR),
+            "Param error：klineNum exceeds "
+            f"{MAX_KLINE_BARS_WHEN_BATCHED} when requesting multiple symbols",
+        )
+    if count > MAX_KLINE_BARS:
+        raise InfowayAPIError.of_rest(
+            int(RestErrorCode.KLINE_EXCEEDS_LIMIT),
+            f"Kline quantity exceeds the limit：{MAX_KLINE_BARS}",
+        )
 
 if TYPE_CHECKING:
     from infoway._http import HttpClient
@@ -47,6 +82,7 @@ class MarketDataMixin:
         Returns:
             ``[{"s","t","p","v","vw","td"}, ...]``
         """
+        _check_symbols(codes)
         data = self._http.get(f"/{self._prefix}/batch_trade/{codes}")
         return normalize_trade(data) if self._should_parse(parse) else data
 
@@ -57,6 +93,7 @@ class MarketDataMixin:
             ``[{"s","t","a":[[prices],[qtys]],"b":[[prices],[qtys]]}, ...]``
             — with ``parse=True``, ``a``/``b`` become ``[(price, qty), ...]``.
         """
+        _check_symbols(codes)
         data = self._http.get(f"/{self._prefix}/batch_depth/{codes}")
         return normalize_depth(data) if self._should_parse(parse) else data
 
@@ -82,6 +119,7 @@ class MarketDataMixin:
             ``[{"s": ..., "respList": [{"t","o","h","l","c","v","vw","pc","pca"}, ...]}]``
             — with ``parse=True`` this is flattened into a single list of candles.
         """
+        _check_kline(codes, count)
         body: dict[str, Any] = {
             "codes": codes,
             "klineType": int(kline_type),

@@ -211,6 +211,17 @@ class RestErrorCode(IntEnum):
         except ValueError:
             return None
 
+    @staticmethod
+    def classify(ret: int, msg: str | None) -> int:
+        """Map a wrapped ``ret=500`` back to the business code in ``msg``."""
+        if ret != RestErrorCode.SERVER_ERROR or not msg or not msg.strip():
+            return ret
+        text = msg.strip().lower()
+        for code, label in _REST_LABELS:
+            if text.startswith(label):
+                return code
+        return ret
+
 
 class WsErrorCode(IntEnum):
     """WebSocket 5xx error-frame codes. Do not use these to decode REST ``ret``."""
@@ -249,6 +260,47 @@ class WsErrorCode(IntEnum):
     def is_error(code: int) -> bool:
         return 500 <= code < 10000 and WsCode.from_code(code) is None
 
+    @staticmethod
+    def is_terminal(code: int) -> bool:
+        """Codes a reconnect cannot fix. 501 and heartbeat timeout stay recoverable."""
+        known = WsErrorCode.from_code(code)
+        if known is None:
+            return False
+        return known in _TERMINAL_WS
+
+
+_REST_LABELS = (
+    (501, "request frequency exceed the limit"),
+    (502, "request frequency for the day upper limit"),
+    (503, "kline quantity exceeds the limit"),
+    (504, "orderbook depth exceeds the limit"),
+    (505, "products quantity exceeds the limit"),
+    (506, "param error"),
+    (507, "param lost"),
+    (508, "all product not exists"),
+    (509, "the token permission has expired"),
+    (510, "websocket connections exceeds the limit"),
+    (511, "websocket heartbeat timeout"),
+    (512, "websocket disconnected"),
+    (513, "timestamp limit error"),
+    (514, "no permission"),
+)
+
+_TERMINAL_WS = {
+    WsErrorCode.REQUEST_FREQUENCY_DAY_EXCEED,
+    WsErrorCode.APIKEY_EXPIRED,
+    WsErrorCode.APIKEY_INVALID,
+    WsErrorCode.APIKEY_EMPTY,
+    WsErrorCode.APIKEY_BLACKLIST,
+    WsErrorCode.WS_CONN_EXCEED,
+    WsErrorCode.WS_URL_WRONG,
+    WsErrorCode.ALL_PRODUCTS_QUANTITY_EXCEED,
+    WsErrorCode.WS_HANDSHAKE_APIKEY_MISSING,
+    WsErrorCode.WS_HANDSHAKE_APIKEY_NOT_EXIST,
+    WsErrorCode.WS_HANDSHAKE_NO_PERMISSION,
+    WsErrorCode.PRODUCT_CODE_OR_ALREADY_CONNECTED,
+    WsErrorCode.WS_HANDSHAKE_MAX_CONNECTIONS,
+}
 
 #: Legal values for the ``type`` parameter of the symbol endpoints.
 SYMBOL_TYPES = tuple(item.value for item in SymbolType)

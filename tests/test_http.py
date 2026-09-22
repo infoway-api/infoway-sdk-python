@@ -191,9 +191,22 @@ def test_ret_500_raises_api_error(client):
     )
     with pytest.raises(InfowayAPIError) as exc:
         client.get("/stock/batch_trade/700.HK")
-    assert exc.value.ret == 500
+    assert exc.value.ret == 508
     assert exc.value.msg == "All product not exists"
     assert exc.value.trace_id is not None
+    assert exc.value.error_name == "PRODUCT_NOT_EXISTS"
+
+
+@respx.mock
+def test_plain_server_error_stays_500(client):
+    respx.get("https://data.infoway.io/stock/batch_trade/NOPE").mock(
+        return_value=httpx.Response(
+            200, json={"ret": 500, "msg": "server error", "traceId": "t", "data": None}
+        )
+    )
+    with pytest.raises(InfowayAPIError) as exc:
+        client.get("/stock/batch_trade/NOPE")
+    assert exc.value.ret == 500
     assert exc.value.error_name == "SERVER_ERROR"
 
 

@@ -8,9 +8,9 @@ a separate entitlement on the API key.
 from __future__ import annotations
 
 import asyncio
+import inspect
 import json
 import logging
-import os
 import uuid
 from contextlib import suppress
 from typing import Any, Awaitable, Callable
@@ -74,7 +74,8 @@ class InfowayNewsWebSocket:
         print_frames: bool = False,
         lang: NewsLang | str = "en",
     ):
-        key = api_key or os.getenv("INFOWAY_API_KEY", "")
+        from infoway._http import resolve_api_key
+        key = resolve_api_key(api_key)
         if not key:
             raise ValueError("apiKey is required (set INFOWAY_API_KEY or pass api_key)")
         self._url = f"{base_url}?apikey={key}"
@@ -119,7 +120,9 @@ class InfowayNewsWebSocket:
         if cb is None:
             return
         try:
-            await cb(*args)
+            result = cb(*args)
+            if inspect.isawaitable(result):
+                await result
         except Exception:
             logger.exception("User %s raised — connection preserved", name)
 
@@ -266,6 +269,11 @@ class InfowayNewsWebSocket:
                 err = InfowayAPIError.of_ws(code, text, trace)
             logger.warning("News channel error frame: %s", err)
             await self._safe_call(self.on_error, err, name="on_error")
+            if WsErrorCode.is_terminal(code):
+                self._running = False
+                ws = self._ws
+                if ws is not None:
+                    await ws.close()
         else:
             logger.debug("Unhandled news code %s: %s", code, msg)
 

@@ -1,4 +1,4 @@
-# Infoway SDK (中文)
+# Infoway Python SDK
 
 [![PyPI version](https://img.shields.io/pypi/v/infoway-sdk.svg)](https://pypi.org/project/infoway-sdk/)
 [![Python](https://img.shields.io/pypi/pyversions/infoway-sdk.svg)](https://pypi.org/project/infoway-sdk/)
@@ -6,14 +6,37 @@
 
 [English](README.md) | **中文**
 
-[Infoway](https://infoway.io) 实时金融数据 API 的官方 Python SDK。完整文档请访问 [docs.infoway.io](https://docs.infoway.io)。
+Infoway 官方 Python SDK。覆盖 REST 行情、基础信息、市场概览、板块、个股、财务，以及行情 / 新闻 WebSocket。
 
-完整示例与分接口用法：[使用说明](USAGE_CN.md) · [USAGE.md](USAGE.md)。当前版本 **0.3.0**。
+| 项目 | 说明 |
+| --- | --- |
+| 包 | [`infoway-sdk==0.3.0`](https://pypi.org/project/infoway-sdk/) |
+| 运行环境 | Python 3.9+ |
+| REST | `https://data.infoway.io` |
+| 行情 WebSocket | `wss://data.infoway.io/ws` |
+| 新闻 WebSocket | `wss://data.infoway.io/news` |
+| 接口频率 | [HTTP](https://docs.infoway.io/getting-started/api-limitation/http) · [WebSocket](https://docs.infoway.io/getting-started/api-limitation/websocket) |
+| 错误码 | [HTTP](https://docs.infoway.io/getting-started/error-codes/http) · [WebSocket](https://docs.infoway.io/getting-started/error-codes/websocket) |
+| 地址 | [行情地址](https://docs.infoway.io/getting-started/api-endpoints) |
+
+未传入 `api_key` 时读取环境变量 `INFOWAY_API_KEY`。`InfowayClient` 是上下文管理器。
+
+## 目录
+
+- [安装](#安装)
+- [快速开始](#快速开始)
+- [标的代码](#标的代码)
+- [客户端](#客户端)
+- [REST](#rest)
+- [类型化结果](#类型化结果)
+- [WebSocket](#websocket)
+- [错误码](#错误码)
+- [REST 路径](#rest-路径)
 
 ## 安装
 
 ```bash
-pip install infoway-sdk
+pip install infoway-sdk==0.3.0
 ```
 
 ## 快速开始
@@ -21,248 +44,275 @@ pip install infoway-sdk
 ```python
 from infoway import InfowayClient, KlineType
 
-client = InfowayClient(api_key="YOUR_API_KEY")
-
-# 实时成交数据
-trades = client.stock.get_trade("AAPL.US")
-
-# 加密货币日K线
-klines = client.crypto.get_kline("BTCUSDT", kline_type=KlineType.DAY, count=30)
-
-# 标的列表
-symbols = client.basic.get_symbols("STOCK_US")
-
-# 市场温度
-temp = client.market.get_temperature(market="HK,US")
-
-# 板块排行
-plates = client.plate.get_industry("HK", limit=10)
+with InfowayClient() as client:
+    print(client.stock.get_trade("AAPL.US"))
+    print(client.crypto.get_kline("BTCUSDT", KlineType.DAY, 30))
+    print(client.packages.get_info())
 ```
 
-### 标的代码格式
+## 标的代码
 
-| 市场 | 格式 | 示例 |
-|------|------|------|
-| 美股 | `TICKER.US` | `AAPL.US` |
-| 港股 | `NNNNN.HK` —— **必须补零到 5 位** | `00700.HK`（不是 `700.HK`） |
-| A 股 | `NNNNNN.SH` / `NNNNNN.SZ` | `600519.SH`、`000001.SZ` |
-| 日/印/韩 | `CODE.JP` / `.IN` / `.KS` | `7203.JP`、`RELIANCE.IN` |
-| 加密货币 | 交易对 | `BTCUSDT` |
-| 外汇 / 贵金属 | 交易对 | `USDJPY`、`XAUUSD` |
+| 市场 | 格式 | 正确 | 错误 |
+| --- | --- | --- | --- |
+| 美股 | `{代码}.US` | `AAPL.US` | `AAPL` |
+| 港股 | 5 位 + `.HK` | `00700.HK` | `700.HK` |
+| A 股上海 | `{代码}.SH` | `600519.SH` | `600519.CN` |
+| A 股深圳 | `{代码}.SZ` | `000001.SZ` | `000001.CN` |
+| 日股 | `{代码}.JP` | `7203.JP` | |
+| 韩股 | `{代码}.KS` | `005930.KS` | |
+| 印股 | `{代码}.IN` | `RELIANCE.IN` | |
+| 台股 | `{代码}.TW` | `2330.TW` | |
+| 加密货币 | 交易对 | `BTCUSDT` | |
+| 外汇 | 货币对 | `USDJPY` | |
 
-后缀写错或缺失，服务端返回 `[500] All product not exists`。
+`basic` / `financial` 的 `type` 用品种类型（`STOCK_US`、`STOCK_CN`、`CRYPTO` 等），不要传市场码 `US`。
 
-## 返回字段
+## 客户端
 
-服务端字段名很短、数值多为字符串。以下是真实字段：
+| 参数 | 默认 | 说明 |
+| --- | --- | --- |
+| `api_key` | `INFOWAY_API_KEY` | API Key |
+| `base_url` | `https://data.infoway.io` | REST 根地址 |
+| `timeout` | `15` | 单次超时（秒） |
+| `max_retries` | `3` | 失败重试 |
+| `parse` | `False` | 是否归一化成交 / 盘口 / K 线 |
 
-| 接口 | 结构 |
-|------|------|
-| `get_trade` | `[{"s","t","p","v","vw","td"}]` —— `t` 是**毫秒**时间戳，`vw` 是**成交额**（不是 VWAP） |
-| `get_depth` | `[{"s","t","a","b"}]` —— `a`/`b` 是**转置的列式** `[[价格...],[量...]]`，不是 `asks`/`bids` |
-| `get_kline` | `[{"s","respList":[{"t","o","h","l","c","v","vw","pc","pca"}]}]` —— K 线套在 `respList` 里，`t` 是**秒级字符串** |
+| 入口 | 用途 |
+| --- | --- |
+| `stock` / `crypto` / `japan` / `india` / `korea` / `taiwan` / `common` | 成交、盘口、K 线 |
+| `basic` / `packages` | 标的、日历、套餐 |
+| `market` / `plate` | 市场概览、板块 |
+| `stock_info` / `financial` | 个股资料、财务 |
 
-### 可选归一化（`parse=True`）
+推荐枚举：`KlineType`、`SymbolType`、`Market`、`Lang`、`NewsLang`、`PeriodType`、`Business`、`RankSort`、`SortOrder`、`ScheduleType`。
 
-默认关闭，保持原始返回不变。按需开启后得到 `Decimal`、带时区的 `datetime`、展平的 K 线、
-以及 `(价格, 数量)` 形式的盘口：
+## REST
+
+多个标的用英文逗号分隔。频率见 [HTTP接口限制](https://docs.infoway.io/getting-started/api-limitation/http)。
+
+### 行情
+
+| 方法 | 说明 |
+| --- | --- |
+| `get_trade(codes)` | 最新成交 |
+| `get_depth(codes)` | 盘口 |
+| `get_kline(codes, kline_type, count, timestamp=None)` | K 线 |
+
+成交字段：`s` 代码、`p` 价格、`v` 量、`vw` 成交额、`t` 毫秒、`td` 方向。K 线在 `respList` 中，`t` 为秒。单标的最多 500 根；多标的时每个返回最近 2 根。
 
 ```python
-client = InfowayClient(api_key="YOUR_API_KEY", parse=True)
-
-candles = client.crypto.get_kline("BTCUSDT", kline_type=KlineType.MIN_1, count=100)
-candles[0]["c"]               # Decimal("63039.00000")
-candles[0]["t"]               # datetime(2026, 8, 15, 6, 27, tzinfo=timezone.utc)
-candles[0]["turnover"]        # Decimal —— 由 "vw" 改名
-candles[0]["change_percent"]  # Decimal("-0.0001") —— 来自 "pc"(REST) / "pfr"(WS)
-
-book = client.crypto.get_depth("BTCUSDT")
-book[0]["a"][0]               # (Decimal("63039.00"), Decimal("45.06"))
-
-# 单次调用覆盖
-raw = client.crypto.get_trade("BTCUSDT", parse=False)
+client.stock.get_trade("AAPL.US,TSLA.US")
+client.crypto.get_depth("BTCUSDT")
+client.korea.get_trade("005930.KS")
+client.taiwan.get_trade("2330.TW")
+client.crypto.get_kline("BTCUSDT", KlineType.MIN_1, 100)
 ```
 
-## WebSocket 实时推送
+| 枚举 | 值 | 周期 |
+| --- | --- | --- |
+| `MIN_1` / `MIN_5` / `MIN_15` / `MIN_30` | 1–4 | 分钟 |
+| `HOUR_1` / `HOUR_2` / `HOUR_4` | 5–7 | 小时 |
+| `DAY` / `WEEK` / `MONTH` / `QUARTER` / `YEAR` | 8–12 | 日及以上 |
+
+### 基础信息
+
+日期 `YYYYMMDD`。`get_trading_hours` 已弃用，请用 `get_trading_schedule`。
+
+```python
+from infoway import Market, ScheduleType, SymbolType
+
+client.basic.get_symbols(SymbolType.STOCK_US)
+client.basic.get_symbol_info(SymbolType.STOCK_US, "AAPL.US")
+client.basic.get_stock_detail(SymbolType.STOCK_US, "AAPL.US")
+client.basic.get_adjustment_factors("AAPL.US", Market.US, "20260801", "20260815")
+client.basic.get_trading_days(Market.US, "20260801", "20260815")
+client.basic.get_trading_schedule()
+client.basic.get_trading_schedule_by_type(ScheduleType.ENERGY)
+client.basic.get_markets()
+client.packages.get_info()
+```
+
+### 市场 / 板块 / 个股 / 财务
+
+```python
+from infoway import Lang, Market, PeriodType, RankSort, SortOrder, SymbolType
+
+client.market.get_temperature(Market.join(Market.HK, Market.US), Lang.ZH_CN)
+client.market.get_breadth(Market.US, Lang.ZH_CN)
+client.market.get_turnover(Market.US)
+client.market.get_indexes(Lang.EN)
+client.market.get_leaders(Market.US, 10)
+client.market.get_overview(Market.US, Lang.ZH_CN)
+client.market.get_rank_categories(Market.US)
+client.market.get_rank(Market.US, "all", sort=RankSort.CHG, order=SortOrder.DESC, limit=30)
+
+client.plate.get_industry("HK", limit=200)
+client.plate.get_concept("HK", limit=100)
+client.plate.get_members("IN20293.HK")
+client.plate.get_intro("IN20293.HK")
+client.plate.get_chart("HK", limit=50)
+
+client.stock_info.get_valuation("AAPL.US")
+client.stock_info.get_ratings("AAPL.US")
+client.stock_info.get_company("AAPL.US", lang="zh-CN")
+client.stock_info.get_panorama("AAPL.US")
+client.stock_info.get_concepts("AAPL.US")
+client.stock_info.get_events("AAPL.US", limit=20)
+client.stock_info.get_drivers("AAPL.US")
+
+client.financial.get_earning_status("AAPL.US", SymbolType.STOCK_US)
+client.financial.get_income_statement("AAPL.US", SymbolType.STOCK_US, PeriodType.FQ)
+client.financial.get_revenue("AAPL.US", SymbolType.STOCK_US)
+client.financial.get_cash_flow("AAPL.US", SymbolType.STOCK_US, PeriodType.FY)
+client.financial.get_balance_sheet("AAPL.US", SymbolType.STOCK_US)
+client.financial.get_statistics("AAPL.US", SymbolType.STOCK_US)
+client.financial.get_dividend("00700.HK", SymbolType.STOCK_HK)
+client.financial.get_dividend_payout("AAPL.US", SymbolType.STOCK_US)
+client.financial.get_earnings("AAPL.US", SymbolType.STOCK_US, PeriodType.FQ)
+```
+
+排行 `key` 来自 `get_rank_categories`。财务需要 `symbol` + `type`。`period_type`：`fq` 季报、`fy` 年报、`fh` 中报。
+
+## 类型化结果
+
+构造时 `parse=True`，或单次调用传入 `parse=True`。
+
+```python
+client = InfowayClient(parse=True)
+bars = client.crypto.get_kline("BTCUSDT", KlineType.MIN_1, 100)
+bars[0]["c"]               # Decimal
+bars[0]["t"]               # datetime (UTC)
+bars[0]["turnover"]        # 由 vw 改名
+bars[0]["change_percent"]  # 0.0003
+```
+
+| 原样 | 归一化 |
+| --- | --- |
+| 价格 / 量为字符串 | `Decimal` |
+| 成交 / 盘口 `t` 毫秒；K 线 `t` 秒 | 带时区的 `datetime` |
+| REST `pc` / WS `pfr` | `change_percent` |
+| K 线 `respList` | 展平列表 |
+| 盘口 `a`/`b` 列式 | `(价格, 数量)` |
+| `vw` | `turnover` |
+
+## WebSocket
+
+### 行情
+
+`business` 必须与标的市场一致。`connect()` 会阻塞，请放到 Task 中。单连接每分钟最多 60 帧，见 [WebSocket限制](https://docs.infoway.io/getting-started/api-limitation/websocket)。
 
 ```python
 import asyncio
+from infoway import KlineType
 from infoway.ws import InfowayWebSocket
 
 async def main():
-    ws = InfowayWebSocket(api_key="YOUR_API_KEY", business="crypto")
+    ws = InfowayWebSocket(business="crypto")
+    ws.on_trade = lambda data: print(data["s"], data["p"])
+    ws.on_error = lambda err: print(err)
 
-    async def on_trade(data):
-        # data 是已解包的业务数据：{"s","t","p","v","vw","td"}
-        print(data["s"], data["p"])
-
-    ws.on_trade = on_trade
-    # 所有代码必须合并成一条订阅报文
-    await ws.subscribe_trade("BTCUSDT,ETHUSDT")   # 也可以传 list
-    await ws.connect()
-
-asyncio.run(main())
-```
-
-### 按标的选择正确的 business 频道
-
-| `business` | 覆盖标的 |
-|------------|----------|
-| `stock` | 美股 / 港股 / A 股 |
-| `japan` | `.JP` |
-| `india` | `.IN` |
-| `korea` | `.KS`（KOSPI + KOSDAQ） |
-| `crypto` | `BTCUSDT` 等（7×24） |
-| `common` | 外汇 / 贵金属 / 期货，如 `XAUUSD` |
-
-**频道选错或代码不存在，服务端同样回 `10001 ok`，然后永远静默。** 收到 ack 却没有数据时，
-请先检查 `business` 是否与标的匹配。
-
-### WebSocket 行为说明
-
-- **回调收到的是 `msg["data"]`**，与 REST 返回口径一致；K 线回调保留 `ty`（周期）字段。
-- **自动重连**（指数退避 1 秒→30 秒上限），但 **HTTP 401 除外** —— API Key 被拒时抛
-  `InfowayAuthError` 并停止重连，不会一直冲击网关（避免被判恶意流量封禁）。
-  一次掉线只安排一次重连；`close()` 会打断退避且不触发 `on_disconnect`。
-  `on_reconnect` 只在再次连上时触发。
-- **重连后自动重新订阅目标集合**。已退订的内容不会回放；断线窗口里的新订阅会在下一跳补发。
-- **心跳** 每 30 秒一次（**每个存活会话一个任务**）。服务端对心跳**不回任何响应**，不要用"等心跳 ack 超时"判断断线。
-- **限流：每连接 60 条报文/分钟**（含心跳）。务必合并 codes 成一条订阅，不要一个 symbol 发一条。
-- 非 JSON 帧（`business=stock` 首帧的纯文本 `You have permission to subscribe to all market data`）
-  与欢迎帧 `{"code":200,"msg":"ws connect success"}` 由 SDK 内部处理。
-- `unsubscribe_kline(codes, kline_type)` 会带上 `klineTypes`，只退订该周期；
-  不带的话服务端会清掉这些标的的**所有**周期。
-
-```python
-await ws.subscribe_kline("BTCUSDT", KlineType.DAY)
-await ws.unsubscribe_kline("BTCUSDT", KlineType.DAY)   # 其他周期仍保持订阅
-```
-
-## 实时新闻
-
-新闻是**独立连接**，走独立路径（`wss://data.infoway.io/news`），且需要单独开通权限。
-
-```python
-import asyncio
-from infoway import InfowayNewsWebSocket, InfowayAuthError
-
-async def main():
-    news = InfowayNewsWebSocket(api_key="YOUR_API_KEY")
-
-    async def on_news(item):
-        # dk(去重键)、country、lang、route、title、published(Unix 秒)、
-        # urgency(越小越急)、provider、symbols[]、link、content、sd
-        print(item["title"], item["symbols"])
-
-    news.on_news = on_news
-    await news.subscribe("zh-Hans")  # en, zh-Hans, zh-Hant, ja, ko, de, fr, es, pt, ru, tr
-    try:
-        await news.connect()
-    except InfowayAuthError as e:
-        print("新闻频道不可用：", e)
+    task = asyncio.create_task(ws.connect())
+    await ws.subscribe_trade("BTCUSDT,ETHUSDT")
+    await ws.subscribe_kline("BTCUSDT", KlineType.MIN_1)
+    await asyncio.sleep(30)
+    await ws.unsubscribe_kline("BTCUSDT", KlineType.MIN_1)
+    await ws.close()
+    await task
 
 asyncio.run(main())
 ```
 
-说明：重复订阅会**覆盖**上一次的语言（没有单条退订）；**一个 API Key 只允许一条新闻连接**。
-Key 未开通新闻权限时握手返回 HTTP 401，SDK 立即抛 `InfowayAuthError`，不会无限重连。
+股票成交类型：`subscribe_trade(codes, include_ty=True)`。
 
-## REST API 模块
+| 行为 | 说明 |
+| --- | --- |
+| 心跳 | 每 30 秒发送 `10010`，服务端不回包 |
+| 重连 | 断线后自动重连并补发当前订阅 |
+| `on_reconnect` | 再次连上时触发 |
+| `on_disconnect` | 仅意外掉线。`close()` 不触发 |
+| HTTP 401 | 停止重连 |
 
-| 模块 | 访问方式 | 说明 |
-|------|----------|------|
-| Stock | `client.stock` | 港股、美股、A股 -- 成交、深度、K线 |
-| Crypto | `client.crypto` | 加密货币 -- 成交、深度、K线 |
-| Japan | `client.japan` | 日本市场 -- 成交、深度、K线 |
-| India | `client.india` | 印度市场 -- 成交、深度、K线 |
-| Korea | `client.korea` | 韩股（`.KS`）-- 成交、深度、K线 |
-| Taiwan | `client.taiwan` | 台股（`.TW`）-- 成交、深度、K线 |
-| Common | `client.common` | 跨市场数据 -- 成交、深度、K线 |
-| Basic | `client.basic` | 标的列表、基础信息、复权因子、交易日历 |
-| Packages | `client.packages` | 当前 Key 套餐额度 |
-| Market | `client.market` | 温度、宽度、成交额、指数、龙头、排行 |
-| Plate | `client.plate` | 行业/概念板块、成分股、板块图表 |
-| Stock Info | `client.stock_info` | 基本面 -- 估值、评级、公司概况、全景、事件 |
-| Financial | `client.financial` | 财报、分红、盈利 |
+| 方向 | 协议号 | 说明 |
+| --- | --- | --- |
+| 出 | 10000 / 10003 / 10006 | 订阅成交 / 盘口 / K 线 |
+| 出 | 11000 / 11001 / 11002 | 退订 |
+| 出 | 10010 | 心跳 |
+| 入 | 10002 / 10005 / 10008 | 推送 |
+| 入 | 11010 | 退订确认 |
+| 入 | 200 | 连接成功 |
 
-### `client.basic` 用法
+ack 只表示请求被接受。多个代码必须合并成一个逗号串。
 
-```python
-# 标的列表 —— type 必填
-# STOCK_US STOCK_CN STOCK_HK STOCK_JP STOCK_KS STOCK_IN CRYPTO FOREX FUTURES
-client.basic.get_symbols("STOCK_US")
-client.basic.get_symbols("STOCK_US", symbols="AAPL.US,TSLA.US")
+### 新闻
 
-# 标的基础信息（最多 500 个）
-client.basic.get_symbol_info("STOCK_US", "AAPL.US")
-
-# 前复权因子 —— 日期为 YYYYMMDD 字符串
-client.basic.get_adjustment_factors("AAPL.US", "US", "20260801", "20260814")
-
-# 交易日历 → {"trade_days": [...], "half_trade_days": [...]}
-client.basic.get_trading_days("US", "20260801", "20260831")
-
-# 非股票品种的交易时段/假期
-# type: ENERGY | FOREX | FUTURES | METAL | INDICES
-client.basic.get_trading_schedule(type="METAL")
-```
-
-`get_trading_hours()` 是 `get_trading_schedule()` 的废弃别名，调用会产生 `DeprecationWarning`；
-旧的 `/markets/trading_hours` 路径在服务端并不存在。
-
-## 环境变量
-
-```bash
-export INFOWAY_API_KEY="YOUR_API_KEY"
-```
+地址 `wss://data.infoway.io/news`，需单独授权。每个 Key 仅允许一条新闻连接。
 
 ```python
-# 自动从环境变量读取 INFOWAY_API_KEY
-client = InfowayClient()
+from infoway.ws import InfowayNewsWebSocket
+
+news = InfowayNewsWebSocket(lang="zh-Hans")
+news.on_news = lambda item: print(item["title"])
 ```
 
-### 客户端配置
+订阅 `10020`，退订 `11020`，推送 `10022`。再次订阅覆盖语言。
+
+## 错误码
+
+REST 看 `ret`，WebSocket 看 `code`。`508`–`514` 两套含义不同。完整列表见 [HTTP错误码](https://docs.infoway.io/getting-started/error-codes/http) 与 [WebSocket错误码](https://docs.infoway.io/getting-started/error-codes/websocket)。
 
 ```python
-client = InfowayClient(
-    api_key="YOUR_API_KEY",
-    base_url="https://data.infoway.io",  # 默认值
-    timeout=15.0,                         # 请求超时（秒）
-    max_retries=3,                        # 重试次数（连接错误、超时、限流）
-    parse=False,                          # 是否归一化行情返回
-)
-```
-
-## 错误处理
-
-```python
-from infoway import (
-    InfowayClient, InfowayAPIError, InfowayAuthError,
-    InfowayRateLimitError, InfowayTimeoutError,
-)
-
-client = InfowayClient(api_key="YOUR_API_KEY")
+from infoway import InfowayAPIError, InfowayAuthError, InfowayRateLimitError
 
 try:
-    trades = client.stock.get_trade("AAPL.US")
-except InfowayAuthError:
-    print("API Key 无效")
-except InfowayRateLimitError:
-    print("触发限流，请退避后重试")
-except InfowayTimeoutError:
-    print("请求超时")
+    client.stock.get_trade("INVALID")
+except InfowayAuthError as e:
+    print(e.msg)
+except InfowayRateLimitError as e:
+    print(e.ret, e.msg)
 except InfowayAPIError as e:
-    print(f"API 错误 [{e.ret}]: {e.msg}")
+    print(e, e.trace_id)
 ```
 
-`InfowayRateLimitError` 继承自 `InfowayAPIError`。限流也可能以 **HTTP 200** 下发，
-body 为 `{"detail": "Rate limit exceeded"}` —— 旧版本会把它静默变成 `None`，
-现在会正确抛出并按退避策略重试。
+REST 限额约 1200 次/分钟/Key。无效 Key：REST 抛 `InfowayAuthError`；WebSocket 握手 HTTP 401 且不重连。
+
+| REST `ret` | 说明 |
+| --- | --- |
+| 200 | 成功 |
+| 400 | 参数错误 |
+| 500 | 服务端错误 |
+| 501 / 502 | 频率超限 |
+| 503 | K 线数量超限 |
+| 505 | 标的数量超限 |
+| 506 / 507 | 参数错误 / 缺失 |
+| 508 | 标的不存在 |
+| 509 | 权限过期 |
+| 513 | 历史时间超出套餐 |
+| 514 | 无权限 |
+
+| WebSocket `code` | 说明 |
+| --- | --- |
+| 501 / 502 | 频率超限 |
+| 505 / 516 | 订阅数量超限 |
+| 506 / 507 | 参数错误 / 缺失 |
+| 508–511 | API Key 过期 / 无效 / 为空 / 黑名单 |
+| 512 | 连接数超限 |
+| 513 | 心跳超时 |
+| 515 | 非 JSON |
+| 517–521 | 握手失败 |
+
+## REST 路径
+
+`{market}` = `stock` / `crypto` / `japan` / `india` / `korea` / `taiwan` / `common`。完整列表见 [行情地址](https://docs.infoway.io/getting-started/api-endpoints)。
+
+| 接口 | 路径 |
+| --- | --- |
+| 最新成交 | `GET /{market}/batch_trade/{codes}` |
+| 盘口 | `GET /{market}/batch_depth/{codes}` |
+| K 线 | `POST /{market}/v2/batch_kline` |
+| 品种 / 日历 / 财务 | `GET /common/basic/*` |
+| 市场 / 板块 / 个股 | `GET /common/v2/basic/*` |
+| 套餐 | `GET /package/info` |
 
 ## 许可证
 
-MIT
-
----
-
-在 [infoway.io](https://infoway.io) 获取免费 API Key -- 7天免费试用，无需信用卡。
+MIT。API Key：[infoway.io](https://infoway.io)。
